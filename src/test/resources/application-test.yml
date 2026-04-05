@@ -1,0 +1,22 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+  cache:
+    type: none
+
+app:
+  security:
+    jwt:
+      secret: "dGVzdC1zZWNyZXQtdGVzdC1zZWNyZXQtdGVzdC1zZWNyZXQtdGVzdA=="
+
+  pii:
+    master-key-base64: "2/H3AVCDQWErvTSpEBYNMmuwI6bj5sh+sWGDdDXctuY="
+    retention-after-close: "PT1H" # short for tests
+
+  storage:
+    s3:
+      enabled: false
+      presign-expiry: "PT5M"
