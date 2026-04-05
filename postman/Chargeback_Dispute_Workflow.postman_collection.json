@@ -1,0 +1,630 @@
+{
+  "info": {
+    "name": "Chargeback / Dispute Workflow",
+    "_postman_id": "6c2c8a2d-1e86-4b02-9f63-2cbb0a1c1111",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "caseId",
+      "value": ""
+    },
+    {
+      "key": "attachmentId",
+      "value": ""
+    },
+    {
+      "key": "piiKeyId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Issue Token (demo)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/auth/token",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "auth",
+            "token"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"subject\": \"alice\",\n  \"team\": \"CHARGEBACK\",\n  \"roles\": [\n    \"DISPUTE_VIEW\",\n    \"DISPUTE_EDIT\"\n  ]\n}"
+        }
+      }
+    },
+    {
+      "name": "Open Case",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/cases",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cases"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"externalRef\": \"cb-123\",\n  \"customerRef\": \"customer@example.com\",\n  \"amountCents\": 1999,\n  \"currency\": \"USD\",\n  \"assignedTeam\": \"CHARGEBACK\",\n  \"description\": \"Customer disputes card-not-present transaction\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Get Case",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/cases/{{caseId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cases",
+            "{{caseId}}"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Change State -> UNDER_REVIEW",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/cases/{{caseId}}/state",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cases",
+            "{{caseId}}",
+            "state"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"targetState\": \"UNDER_REVIEW\",\n  \"note\": \"Evidence received, start review\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Register Attachment Metadata",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/cases/{{caseId}}/attachments/register",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cases",
+            "{{caseId}}",
+            "attachments",
+            "register"
+          ]
+        },
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"filename\": \"evidence.pdf\",\n  \"contentType\": \"application/pdf\",\n  \"sizeBytes\": 123456,\n  \"sha256\": \"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Audit History",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/cases/{{caseId}}/audit",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cases",
+            "{{caseId}}",
+            "audit"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Presign Attachment Upload",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/cases/{{caseId}}/attachments/presign-upload",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cases",
+            "{{caseId}}",
+            "attachments",
+            "presign-upload"
+          ]
+        },
+        "description": "Generates a presigned upload URL and stores attachment metadata.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"filename\": \"evidence.pdf\",\n  \"contentType\": \"application/pdf\",\n  \"sizeBytes\": 1234,\n  \"sha256\": \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Presign Attachment Download",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/cases/{{caseId}}/attachments/{{attachmentId}}/presign-download",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cases",
+            "{{caseId}}",
+            "attachments",
+            "{{attachmentId}}",
+            "presign-download"
+          ]
+        },
+        "description": "Generates a presigned download URL for an existing attachment."
+      }
+    },
+    {
+      "name": "Update Encrypted PII",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/cases/{{caseId}}/pii",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cases",
+            "{{caseId}}",
+            "pii"
+          ]
+        },
+        "description": "Updates PII envelope (requires DISPUTE_PII_VIEW + edit).",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"pii\": {\n    \"email\": \"john@example.com\",\n    \"fullName\": \"John Doe\",\n    \"phone\": \"+48123456789\"\n  },\n  \"note\": \"Add customer contact for investigation\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Set Legal Hold (admin)",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/cases/{{caseId}}/legal-hold",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "cases",
+            "{{caseId}}",
+            "legal-hold"
+          ]
+        },
+        "description": "Prevents PII purge by retention job.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"legalHold\": true,\n  \"note\": \"Regulatory hold\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Export Cases CSV (auditor)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/audit/cases.csv?from=2026-01-01T00:00:00Z&to=2026-12-31T00:00:00Z&includePii=false",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "audit",
+            "cases.csv"
+          ],
+          "query": [
+            {
+              "key": "from",
+              "value": "2026-01-01T00:00:00Z"
+            },
+            {
+              "key": "to",
+              "value": "2026-12-31T00:00:00Z"
+            },
+            {
+              "key": "includePii",
+              "value": "false"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Export Audit Log CSV (auditor)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/api/audit/audit-log.csv?from=2026-01-01T00:00:00Z&to=2026-12-31T00:00:00Z",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "api",
+            "audit",
+            "audit-log.csv"
+          ],
+          "query": [
+            {
+              "key": "from",
+              "value": "2026-01-01T00:00:00Z"
+            },
+            {
+              "key": "to",
+              "value": "2026-12-31T00:00:00Z"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Admin Crypto",
+      "item": [
+        {
+          "name": "List PII Keys",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/crypto/pii-keys",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "crypto",
+                "pii-keys"
+              ]
+            }
+          }
+        },
+        {
+          "name": "PII Keys Health",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/crypto/pii-keys/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "crypto",
+                "pii-keys",
+                "health"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Generate PII Key Material",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/crypto/pii-keys/generate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "crypto",
+                "pii-keys",
+                "generate"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Promote PII Key (set primary)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/crypto/pii-keys/{{piiKeyId}}/promote",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "crypto",
+                "pii-keys",
+                "{{piiKeyId}}",
+                "promote"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Current Export Signing Public Key (admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/crypto/export-signing",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "crypto",
+                "export-signing"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Generate Export Signing Keypair",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/admin/crypto/export-signing/generate",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "crypto",
+                "export-signing",
+                "generate"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Public Export Signing Key",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/public/export-signing-key",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "public",
+                "export-signing-key"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin PII Re-encryption",
+      "item": [
+        {
+          "name": "Schedule re-encrypt job (dry-run)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/admin/crypto/pii-keys/reencrypt-jobs",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"oldKid\": \"k2025-06\",\n  \"newKid\": \"k2026-01\",\n  \"batchSize\": 50,\n  \"delayMs\": 100,\n  \"dryRun\": true\n}"
+            }
+          }
+        },
+        {
+          "name": "Schedule re-encrypt job",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/api/admin/crypto/pii-keys/reencrypt-jobs",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"oldKid\": \"k2025-06\",\n  \"newKid\": \"k2026-01\",\n  \"batchSize\": 50,\n  \"delayMs\": 100,\n  \"dryRun\": false\n}"
+            }
+          }
+        },
+        {
+          "name": "Get re-encrypt job status",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/admin/crypto/pii-keys/reencrypt-jobs/{{jobId}}"
+          }
+        },
+        {
+          "name": "Cancel re-encrypt job",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/admin/crypto/pii-keys/reencrypt-jobs/{{jobId}}/cancel"
+          }
+        }
+      ]
+    }
+  ]
+}
