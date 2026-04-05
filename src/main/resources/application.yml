@@ -1,0 +1,77 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: chargeback-dispute-workflow
+  datasource:
+    url: jdbc:postgresql://localhost:5432/disputes
+    username: disputes
+    password: disputes
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+  flyway:
+    enabled: true
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    consumer:
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "com.github.dimitryivaniuta.*"
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  cache:
+    type: redis
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+
+app:
+  security:
+    jwt:
+      # Base64-encoded 32+ bytes for HS256/HS512
+      secret: "Y2hhbmdlLW1lLXNlY3JldC1hdC1sZWFzdC0zMi1ieXRlcy1sb25n"
+  deadlines:
+    # SLA durations per next state.
+    openDueHours: 72
+    evidenceRequestedDueHours: 168
+    underReviewDueHours: 120
+  attachments:
+    # Only metadata is stored in DB. This service generates a storageKey that your secure storage (e.g. S3) can use.
+    storagePrefix: "disputes/"
+
+  pii:
+    master-key-base64: "2/H3AVCDQWErvTSpEBYNMmuwI6bj5sh+sWGDdDXctuY="
+    # Purge encrypted PII this long after case closure (unless legalHold=true)
+    retention-after-close: "PT2160H" # 90 days
+
+  storage:
+    s3:
+      enabled: false
+      bucket: "disputes-secure"
+      region: "eu-central-1"
+      # Optional: LocalStack endpoint for local testing (set enabled=true)
+      endpoint: "http://localhost:4566"
+      presign-expiry: "PT15M"
+
+  export:
+    signing:
+      # Optional. If not set, a DEV in-memory keypair is generated at startup.
+      # private-key-pkcs8-base64: "..."
+      # public-key-x509-base64: "..."
+      private-key-pkcs8-base64: ""
+      public-key-x509-base64: ""
